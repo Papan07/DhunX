@@ -1,0 +1,258 @@
+/* Music Player Styles */
+.music-player {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+  color: white;
+  z-index: 1000;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+}
+
+.music-player.minimized {
+  height: 80px;
+}
+
+.player-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.track-info-player {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+}
+
+.player-thumbnail {
+  width: 50px;
+  height: 50px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.track-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.player-track-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 0.25rem 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.player-track-artist {
+  font-size: 0.9rem;
+  color: #cbd5e0;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.player-controls-header {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.minimize-btn,
+.close-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: white;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.minimize-btn:hover,
+.close-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.1);
+}
+
+.player-content {
+  padding: 0 1rem 1rem;
+}
+
+.youtube-player-container {
+  margin-bottom: 1rem;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #000;
+}
+
+.player-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.main-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.control-btn,
+.play-pause-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: white;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.control-btn {
+  width: 40px;
+  height: 40px;
+  font-size: 1rem;
+}
+
+.play-pause-btn {
+  width: 50px;
+  height: 50px;
+  font-size: 1.2rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.control-btn:hover,
+.play-pause-btn:hover {
+  transform: scale(1.1);
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.play-pause-btn:hover {
+  background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+}
+
+.volume-control {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 150px;
+}
+
+.volume-icon {
+  font-size: 1rem;
+}
+
+.volume-slider {
+  flex: 1;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+  -webkit-appearance: none;
+}
+
+.volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.volume-slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 50%;
+  cursor: pointer;
+  border: none;
+}
+
+.volume-value {
+  font-size: 0.8rem;
+  color: #cbd5e0;
+  min-width: 35px;
+  text-align: right;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .player-header {
+    padding: 0.75rem;
+  }
+  
+  .player-thumbnail {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .player-track-title {
+    font-size: 0.9rem;
+  }
+  
+  .player-track-artist {
+    font-size: 0.8rem;
+  }
+  
+  .player-controls {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .volume-control {
+    min-width: auto;
+    width: 100%;
+    max-width: 200px;
+  }
+  
+  .control-btn {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .play-pause-btn {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+@media (max-width: 480px) {
+  .track-info-player {
+    gap: 0.75rem;
+  }
+  
+  .player-controls-header {
+    gap: 0.25rem;
+  }
+  
+  .minimize-btn,
+  .close-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 0.9rem;
+  }
+}
+
+/* Desktop Layout Adjustment */
+@media (min-width: 1024px) {
+  .music-player {
+    left: 280px; /* Account for sidebar */
+  }
+}
