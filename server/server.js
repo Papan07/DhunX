@@ -33,7 +33,7 @@ app.use(passport.session());
 
 // CORS configuration
 const corsOptions = {
-  origin: process.env.FRONTEND_URL || 'http://localhost:5176',
+  origin: process.env.FRONTEND_URL || 'http://localhost:5175',
   credentials: true
 };
 console.log('CORS configured for origin:', corsOptions.origin);

@@ -104,7 +104,7 @@ const SignUp = () => {
 
   const handleGoogleSignUp = () => {
     // Redirect to Google OAuth
-    window.location.href = 'http://localhost:5002/api/auth/google';
+    window.location.href = 'http://localhost:5000/api/auth/google';
   };
 
   return (
