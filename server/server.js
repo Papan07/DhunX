@@ -34,7 +34,8 @@ app.use(passport.session());
 // CORS configuration
 const allowedOrigins = [
   process.env.FRONTEND_URL || 'http://localhost:5175',
-  'https://dhunx.vercel.app'
+  'https://dhunx.vercel.app',
+  'https://dhun-x.vercel.app'
 ];
 
 const corsOptions = {
