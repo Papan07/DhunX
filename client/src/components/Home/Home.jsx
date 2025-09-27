@@ -17,16 +17,33 @@ const Home = () => {
   const [error, setError] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   const [lastRefresh, setLastRefresh] = useState(Date.now());
+  const [recommendationsLoading, setRecommendationsLoading] = useState(false);
+
+  const fetchRecommendations = async () => {
+    setRecommendationsLoading(true);
+    try {
+      console.log('Fetching recommendations...');
+      const response = await axios.get('http://localhost:5002/api/music/recommendations');
+      
+      if (response.data.success && response.data.data.results) {
+        console.log('Got recommendations:', response.data.data.results.length);
+        setSongSuggestions(response.data.data.results);
+      } else {
+        console.log('No recommendations received');
+        setSongSuggestions([]);
+      }
+    } catch (error) {
+      console.error('Recommendations error:', error);
+      setSongSuggestions([]);
+    } finally {
+      setRecommendationsLoading(false);
+    }
+  };
 
   useEffect(() => {
     fetchHomeData();
-
-    // Set up automatic refresh every 10 minutes
-    const refreshInterval = setInterval(() => {
-      refreshRecommendations();
-    }, 10 * 60 * 1000); // 10 minutes
-
-    return () => clearInterval(refreshInterval);
+    // Force fetch recommendations on mount
+    fetchRecommendations();
   }, []);
 
   const fetchHomeData = async () => {
@@ -38,7 +55,7 @@ const Home = () => {
       const headers = { Authorization: `Bearer ${token}` };
 
       // Fetch trending music
-      const trendingResponse = await axios.get('http://localhost:5000/api/music/trending', {
+      const trendingResponse = await axios.get('http://localhost:5002/api/music/trending', {
         params: { limit: 12 }
       });
       
@@ -46,66 +63,8 @@ const Home = () => {
         setTrendingMusic(trendingResponse.data.data.results);
       }
 
-      // --- Enhanced Personalized Suggestions Logic ---
-      try {
-        // Use the recommendation engine for a large number of personalized suggestions
-        const personalizedSuggestions = await recommendationEngine.getPersonalizedRecommendations(85);
-
-        if (personalizedSuggestions && personalizedSuggestions.length > 0) {
-          setSongSuggestions(personalizedSuggestions);
-        } else {
-          // Fallback to multiple generic searches to get 80-90 songs
-          const suggestionsQueries = [
-            'pop hits 2024', 'trending songs', 'viral music', 'top charts',
-            'new releases', 'popular music', 'hit songs', 'best music 2024',
-            'dance music', 'rock hits', 'indie music', 'electronic music'
-          ];
-
-          const allSuggestions = [];
-          const songsPerQuery = Math.ceil(85 / suggestionsQueries.length);
-
-          for (const query of suggestionsQueries) {
-            try {
-              const response = await axios.get('http://localhost:5000/api/music/search', {
-                params: { q: query, limit: songsPerQuery }
-              });
-
-              if (response.data.success && response.data.data.results) {
-                allSuggestions.push(...response.data.data.results);
-              }
-            } catch (queryError) {
-              console.error(`Error with query ${query}:`, queryError);
-            }
-          }
-
-          // Remove duplicates and shuffle
-          const uniqueSuggestions = this.removeDuplicates ? this.removeDuplicates(allSuggestions) : allSuggestions;
-          const shuffledSuggestions = uniqueSuggestions.sort(() => Math.random() - 0.5);
-          setSongSuggestions(shuffledSuggestions.slice(0, 85));
-        }
-      } catch (e) {
-        console.log("Could not fetch personalized suggestions, falling back to generic ones.", e.message);
-
-        // Final fallback with multiple queries
-        const fallbackQueries = ['popular songs', 'trending music', 'top hits', 'new music'];
-        const allFallbackSuggestions = [];
-
-        for (const query of fallbackQueries) {
-          try {
-            const fallbackResponse = await axios.get('http://localhost:5000/api/music/search', {
-              params: { q: query, limit: 20 }
-            });
-
-            if (fallbackResponse.data.success) {
-              allFallbackSuggestions.push(...fallbackResponse.data.data.results);
-            }
-          } catch (fallbackError) {
-            console.error(`Fallback query ${query} failed:`, fallbackError);
-          }
-        }
-
-        setSongSuggestions(allFallbackSuggestions.slice(0, 80));
-      }
+      // Fetch recommendations
+      await fetchRecommendations();
 
       // Get recently played from user history
       const userPreferences = userHistoryService.getUserPreferences();
@@ -142,22 +101,13 @@ const Home = () => {
 
   // Enhanced refresh function for recommendations only
   const refreshRecommendations = async () => {
-    if (refreshing) return; // Prevent multiple simultaneous refreshes
+    if (refreshing || recommendationsLoading) return;
 
     setRefreshing(true);
     setLastRefresh(Date.now());
 
     try {
-      // Get fresh personalized recommendations with variety
-      const personalizedSuggestions = await recommendationEngine.getPersonalizedRecommendations(15);
-
-      if (personalizedSuggestions && personalizedSuggestions.length > 0) {
-        // Shuffle and take a subset to provide variety
-        const shuffledSuggestions = personalizedSuggestions
-          .sort(() => Math.random() - 0.5)
-          .slice(0, 12);
-        setSongSuggestions(shuffledSuggestions);
-      }
+      await fetchRecommendations();
 
       // Also refresh recently played from history
       const userPreferences = userHistoryService.getUserPreferences();
@@ -194,7 +144,7 @@ const Home = () => {
   const handleLikeSong = async (song) => {
     try {
       const token = localStorage.getItem('accessToken');
-      await axios.post('http://localhost:5000/api/library/liked-songs', {
+      await axios.post('http://localhost:5002/api/library/liked-songs', {
         videoId: song.id,
         title: song.title,
         artist: song.artist,
@@ -357,15 +307,30 @@ const Home = () => {
             </div>
           </section>
 
-          {/* Additional Recommendations - shown when sidebar is hidden */}
-          {isSidebarHidden && songSuggestions.length > 0 && (
-            <section className="music-section">
-              <div className="section-header">
-                <h2>More Recommendations</h2>
+          {/* Recommendations Section */}
+          <section className="music-section">
+            <div className="section-header">
+              <h2>Recommended for You {songSuggestions.length > 0 && `(${songSuggestions.length} songs)`}</h2>
+              <button 
+                className="refresh-btn" 
+                onClick={refreshRecommendations}
+                disabled={refreshing || recommendationsLoading}
+              >
+                {refreshing || recommendationsLoading ? '🔄' : '↻'} Refresh
+              </button>
+            </div>
+            
+            {recommendationsLoading && (
+              <div className="home-loading">
+                <div className="loading-spinner"></div>
+                <p>Loading recommendations...</p>
               </div>
+            )}
+            
+            {!recommendationsLoading && songSuggestions.length > 0 && (
               <div className="recommendations-grid">
-                {songSuggestions.slice(1, 7).map((track, index) => (
-                  <div key={track.id} className="recommendation-card">
+                {songSuggestions.map((track, index) => (
+                  <div key={`${track.id}-${index}`} className="recommendation-card">
                     <div className="recommendation-image">
                       <img src={track.thumbnail} alt={track.title} />
                       <div className="recommendation-overlay">
@@ -390,8 +355,17 @@ const Home = () => {
                   </div>
                 ))}
               </div>
-            </section>
-          )}
+            )}
+            
+            {!recommendationsLoading && songSuggestions.length === 0 && (
+              <div className="home-error">
+                <p>No recommendations available. Try refreshing.</p>
+                <button onClick={fetchRecommendations} className="retry-btn">
+                  Load Recommendations
+                </button>
+              </div>
+            )}
+          </section>
         </div>
 
         {/* Right Sidebar */}

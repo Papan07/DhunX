@@ -7,34 +7,45 @@ const { optionalAuth } = require('../middleware/auth');
 // @desc    Search for music
 // @access  Public
 router.get('/search', optionalAuth, async (req, res) => {
+  const axios = require('axios');
+  const { q, limit = 20 } = req.query;
+  
+  if (!q || q.trim() === '') {
+    return res.status(400).json({
+      success: false,
+      message: 'Search query is required'
+    });
+  }
+
   try {
-    const { q, limit = 20 } = req.query;
-    
-    if (!q || q.trim() === '') {
-      return res.status(400).json({
+    if (!process.env.YOUTUBE_API_KEY || process.env.YOUTUBE_API_KEY === 'YOUR_VALID_YOUTUBE_API_KEY_HERE') {
+      return res.status(500).json({
         success: false,
-        message: 'Search query is required'
+        message: 'YouTube API key is not configured. Please set a valid YOUTUBE_API_KEY in the .env file.'
       });
     }
 
-    const results = await musicService.searchMusic(q.trim(), parseInt(limit));
-    
-    // Get video details for duration
-    if (results.length > 0) {
-      const videoIds = results.map(item => item.id);
-      const videoDetails = await musicService.getVideoDetails(videoIds);
-      
-      // Merge duration data
-      results.forEach(result => {
-        const details = videoDetails.find(detail => detail.id === result.id);
-        if (details) {
-          result.duration = details.duration;
-          result.durationFormatted = musicService.formatDuration(details.duration);
-          result.viewCount = details.viewCount;
-          result.likeCount = details.likeCount;
-        }
-      });
-    }
+    console.log('DIRECT YouTube API call for:', q);
+    const response = await axios.get('https://www.googleapis.com/youtube/v3/search', {
+      params: {
+        part: 'snippet',
+        q: q.trim(),
+        type: 'video',
+        maxResults: parseInt(limit),
+        key: process.env.YOUTUBE_API_KEY
+      }
+    });
+
+    const results = response.data.items.map(item => ({
+      id: item.id.videoId,
+      title: item.snippet.title,
+      artist: item.snippet.channelTitle,
+      thumbnail: item.snippet.thumbnails.medium.url,
+      description: item.snippet.description,
+      publishedAt: item.snippet.publishedAt
+    }));
+
+    console.log('YouTube results:', results.length, 'First:', results[0]?.title);
 
     res.json({
       success: true,
@@ -46,10 +57,43 @@ router.get('/search', optionalAuth, async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Music search error:', error);
+    console.error('YouTube API error:', error.response?.data || error.message);
+    
+    // If quota exceeded, return mock data
+    if (error.response?.status === 403 && error.response?.data?.error?.message?.includes('quota')) {
+      const mockResults = [
+        {
+          id: 'mock1',
+          title: `${q} - Song 1`,
+          artist: 'Artist 1',
+          thumbnail: 'https://i.ytimg.com/vi/dQw4w9WgXcQ/mqdefault.jpg',
+          description: 'Mock result - API quota exceeded',
+          publishedAt: new Date().toISOString()
+        },
+        {
+          id: 'mock2', 
+          title: `${q} - Song 2`,
+          artist: 'Artist 2',
+          thumbnail: 'https://i.ytimg.com/vi/dQw4w9WgXcQ/mqdefault.jpg',
+          description: 'Mock result - API quota exceeded',
+          publishedAt: new Date().toISOString()
+        }
+      ];
+      
+      return res.json({
+        success: true,
+        data: {
+          query: q,
+          results: mockResults,
+          total: mockResults.length,
+          note: 'Using mock data - YouTube API quota exceeded'
+        }
+      });
+    }
+    
     res.status(500).json({
       success: false,
-      message: 'Failed to search music'
+      message: 'YouTube API failed: ' + (error.response?.data?.error?.message || error.message)
     });
   }
 });
@@ -82,147 +126,95 @@ router.get('/trending', optionalAuth, async (req, res) => {
   }
 });
 
-// @route   GET /api/music/artist/:name
-// @desc    Search music by artist
+// @route   GET /api/music/recommendations
+// @desc    Get 70-80 recommended songs that change on refresh
 // @access  Public
-router.get('/artist/:name', optionalAuth, async (req, res) => {
+router.get('/recommendations', optionalAuth, async (req, res) => {
+  const axios = require('axios');
+  
   try {
-    const { name } = req.params;
-    const { limit = 20 } = req.query;
+    console.log('Fetching recommendations using multiple searches...');
     
-    if (!name || name.trim() === '') {
-      return res.status(400).json({
-        success: false,
-        message: 'Artist name is required'
-      });
+    const queries = [
+      'bollywood hits', 'english songs', 'punjabi songs', 'hindi songs',
+      'trending music', 'popular songs', 'top charts', 'viral songs',
+      'love songs', 'party songs', 'sad songs', 'dance music',
+      'rock music', 'pop songs', 'hip hop', 'classical music'
+    ];
+    
+    const selectedQueries = queries.sort(() => Math.random() - 0.5).slice(0, 8);
+    const allResults = [];
+    
+    for (const query of selectedQueries) {
+      try {
+        console.log(`Fetching: ${query}`);
+        const response = await axios.get('https://www.googleapis.com/youtube/v3/search', {
+          params: {
+            part: 'snippet',
+            q: query,
+            type: 'video',
+            maxResults: 12,
+            key: process.env.YOUTUBE_API_KEY
+          }
+        });
+        
+        const results = response.data.items.map(item => ({
+          id: item.id.videoId,
+          title: item.snippet.title,
+          artist: item.snippet.channelTitle,
+          thumbnail: item.snippet.thumbnails.medium.url,
+          description: item.snippet.description,
+          publishedAt: item.snippet.publishedAt
+        }));
+        
+        allResults.push(...results);
+        console.log(`Added ${results.length} songs from ${query}`);
+      } catch (error) {
+        console.error(`Error with ${query}:`, error.message);
+      }
     }
-
-    const results = await musicService.searchByArtist(name.trim(), parseInt(limit));
+    
+    const uniqueResults = allResults.filter((item, index, self) => 
+      index === self.findIndex(t => t.id === item.id)
+    );
+    
+    const finalResults = uniqueResults.sort(() => Math.random() - 0.5);
+    
+    console.log(`Returning ${finalResults.length} recommendations`);
     
     res.json({
       success: true,
       data: {
-        artist: name,
-        results: results,
-        total: results.length
+        results: finalResults,
+        total: finalResults.length
       }
     });
-
-  } catch (error) {
-    console.error('Artist search error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to search artist music'
-    });
-  }
-});
-
-// @route   GET /api/music/genre/:genre
-// @desc    Search music by genre
-// @access  Public
-router.get('/genre/:genre', optionalAuth, async (req, res) => {
-  try {
-    const { genre } = req.params;
-    const { limit = 20 } = req.query;
     
-    if (!genre || genre.trim() === '') {
-      return res.status(400).json({
-        success: false,
-        message: 'Genre is required'
-      });
-    }
-
-    const results = await musicService.searchByGenre(genre.trim(), parseInt(limit));
-    
-    res.json({
-      success: true,
-      data: {
-        genre: genre,
-        results: results,
-        total: results.length
-      }
-    });
-
-  } catch (error) {
-    console.error('Genre search error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to search genre music'
-    });
-  }
-});
-
-// @route   GET /api/music/recommendations/:videoId
-// @desc    Get music recommendations based on a video
-// @access  Public
-router.get('/recommendations/:videoId', optionalAuth, async (req, res) => {
-  try {
-    const { videoId } = req.params;
-    const { limit = 10 } = req.query;
-    
-    if (!videoId || videoId.trim() === '') {
-      return res.status(400).json({
-        success: false,
-        message: 'Video ID is required'
-      });
-    }
-
-    const results = await musicService.getRecommendations(videoId.trim(), parseInt(limit));
-    
-    res.json({
-      success: true,
-      data: {
-        videoId: videoId,
-        results: results,
-        total: results.length
-      }
-    });
-
   } catch (error) {
     console.error('Recommendations error:', error);
+    
+    // If quota exceeded, return mock data
+    if (error.response?.status === 403) {
+      console.log('YouTube API quota exceeded, returning mock recommendations');
+      const mockRecommendations = [
+        { id: 'rec1', title: 'Trending Song 1', artist: 'Popular Artist 1', thumbnail: 'https://i.ytimg.com/vi/dQw4w9WgXcQ/mqdefault.jpg', description: 'Mock recommendation', publishedAt: new Date().toISOString() },
+        { id: 'rec2', title: 'Trending Song 2', artist: 'Popular Artist 2', thumbnail: 'https://i.ytimg.com/vi/dQw4w9WgXcQ/mqdefault.jpg', description: 'Mock recommendation', publishedAt: new Date().toISOString() },
+        { id: 'rec3', title: 'Trending Song 3', artist: 'Popular Artist 3', thumbnail: 'https://i.ytimg.com/vi/dQw4w9WgXcQ/mqdefault.jpg', description: 'Mock recommendation', publishedAt: new Date().toISOString() }
+      ];
+      
+      return res.json({
+        success: true,
+        data: {
+          results: mockRecommendations,
+          total: mockRecommendations.length,
+          note: 'Using mock data - YouTube API quota exceeded'
+        }
+      });
+    }
+    
     res.status(500).json({
       success: false,
       message: 'Failed to get recommendations'
-    });
-  }
-});
-
-// @route   GET /api/music/video/:videoId
-// @desc    Get detailed information about a specific video
-// @access  Public
-router.get('/video/:videoId', optionalAuth, async (req, res) => {
-  try {
-    const { videoId } = req.params;
-    
-    if (!videoId || videoId.trim() === '') {
-      return res.status(400).json({
-        success: false,
-        message: 'Video ID is required'
-      });
-    }
-
-    const details = await musicService.getVideoDetails(videoId.trim());
-    
-    if (!details.length) {
-      return res.status(404).json({
-        success: false,
-        message: 'Video not found'
-      });
-    }
-
-    const videoDetail = details[0];
-    videoDetail.durationFormatted = musicService.formatDuration(videoDetail.duration);
-
-    res.json({
-      success: true,
-      data: videoDetail
-    });
-
-  } catch (error) {
-    console.error('Video details error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to get video details'
     });
   }
 });

@@ -39,18 +39,33 @@ const Search = () => {
     e.preventDefault();
     if (!searchQuery.trim()) return;
 
+    console.log('Starting search for:', searchQuery);
     setLoading(true);
+    setSearchResults([]); // Clear previous results
+    
     try {
-      const response = await axios.get(`http://localhost:5000/api/music/search`, {
+      const response = await axios.get(`http://localhost:5002/api/music/search`, {
         params: { q: searchQuery, limit: 20 }
       });
 
-      if (response.data.success) {
-        setSearchResults(response.data.data.results);
+      console.log('Full response:', response);
+      console.log('Response data:', response.data);
+      console.log('Results array:', response.data?.data?.results);
+
+      if (response.data && response.data.success && response.data.data && response.data.data.results) {
+        const results = response.data.data.results;
+        console.log('Setting', results.length, 'search results');
+        console.log('First result title:', results[0]?.title);
+        console.log('All titles:', results.map(r => r.title));
+        setSearchResults(results);
+      } else {
+        console.log('No results found or invalid response structure');
+        setSearchResults([]);
       }
     } catch (error) {
       console.error('Search error:', error);
-      alert('Failed to search music. Please try again.');
+      console.error('Error response:', error.response?.data);
+      setSearchResults([]);
     } finally {
       setLoading(false);
     }

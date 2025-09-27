@@ -42,7 +42,8 @@
   border: none;
   outline: none;
   font-size: 1rem;
-  background: transparent;
+  background: white;
+  color: #000000 !important;
 }
 
 .search-input::placeholder {

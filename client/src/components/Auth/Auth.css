@@ -9,6 +9,8 @@
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   position: relative;
   overflow: hidden;
+  /* Override global dark theme for auth pages */
+  color: #2d3748;
 }
 
 /* Desktop background pattern */
@@ -37,6 +39,8 @@
   animation: slideUp 0.6s ease-out;
   position: relative;
   z-index: 1;
+  /* Ensure all text in auth card is dark */
+  color: #2d3748 !important;
 }
 
 /* Desktop layout adjustments */
@@ -129,13 +133,13 @@
   font-size: 2rem;
   font-weight: 600;
   margin: 0 0 12px 0;
-  color: #1a202c;
+  color: #1a202c !important;
   text-align: center;
   line-height: 1.2;
 }
 
 .auth-subtitle {
-  color: #718096;
+  color: #718096 !important;
   text-align: center;
   margin: 0 0 36px 0;
   font-size: 1rem;
@@ -172,7 +176,7 @@
   display: block;
   margin-bottom: 8px;
   font-weight: 500;
-  color: #2d3748;
+  color: #2d3748 !important;
   font-size: 0.95rem;
   letter-spacing: 0.025em;
 }
@@ -184,20 +188,23 @@
   border-radius: 12px;
   font-size: 1rem;
   transition: all 0.3s ease;
-  background: #f7fafc;
+  background: #ffffff !important;
   box-sizing: border-box;
   font-weight: 400;
+  color: #2d3748 !important;
 }
 
 .form-group input:hover {
   border-color: #cbd5e0;
-  background: #ffffff;
+  background: #ffffff !important;
+  color: #2d3748 !important;
 }
 
 .form-group input:focus {
   outline: none;
   border-color: #667eea;
-  background: white;
+  background: white !important;
+  color: #2d3748 !important;
   box-shadow:
     0 0 0 3px rgba(102, 126, 234, 0.1),
     0 4px 12px rgba(0, 0, 0, 0.05);
@@ -206,17 +213,39 @@
 
 .form-group input.error {
   border-color: #e53e3e;
-  background: #fed7d7;
+  background: #fed7d7 !important;
+  color: #2d3748 !important;
 }
 
 .form-group input.error:focus {
+  background: #fed7d7 !important;
+  color: #2d3748 !important;
   box-shadow:
     0 0 0 3px rgba(229, 62, 62, 0.1),
     0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
+/* Placeholder text styling */
+.form-group input::placeholder {
+  color: #a0aec0 !important;
+  opacity: 1;
+}
+
+.form-group input::-webkit-input-placeholder {
+  color: #a0aec0 !important;
+}
+
+.form-group input::-moz-placeholder {
+  color: #a0aec0 !important;
+  opacity: 1;
+}
+
+.form-group input:-ms-input-placeholder {
+  color: #a0aec0 !important;
+}
+
 .field-error {
-  color: #e53e3e;
+  color: #e53e3e !important;
   font-size: 0.85rem;
   margin-top: 6px;
   display: block;
@@ -375,7 +404,7 @@
 .auth-divider span {
   background: white;
   padding: 0 15px;
-  color: #718096;
+  color: #718096 !important;
   font-size: 0.9rem;
   position: relative;
 }
@@ -389,7 +418,7 @@
 }
 
 .auth-footer p {
-  color: #718096;
+  color: #718096 !important;
   margin: 0;
   font-size: 0.9rem;
 }

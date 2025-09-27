@@ -25,7 +25,7 @@ const SignIn = () => {
     setError('');
 
     try {
-      const response = await axios.post('http://localhost:5000/api/auth/login', formData);
+      const response = await axios.post('http://localhost:5002/api/auth/login', formData);
       
       if (response.data.success) {
         // Store tokens
@@ -45,7 +45,7 @@ const SignIn = () => {
 
   const handleGoogleSignIn = () => {
     // Redirect to Google OAuth
-    window.location.href = 'http://localhost:5000/api/auth/google';
+    window.location.href = 'http://localhost:5002/api/auth/google';
   };
 
   return (

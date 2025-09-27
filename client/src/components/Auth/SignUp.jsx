@@ -75,7 +75,7 @@ const SignUp = () => {
 
     try {
       const { confirmPassword, ...submitData } = formData;
-      const response = await axios.post('http://localhost:5000/api/auth/register', submitData);
+      const response = await axios.post('http://localhost:5002/api/auth/register', submitData);
       
       if (response.data.success) {
         // Store tokens
@@ -104,7 +104,7 @@ const SignUp = () => {
 
   const handleGoogleSignUp = () => {
     // Redirect to Google OAuth
-    window.location.href = 'http://localhost:5000/api/auth/google';
+    window.location.href = 'http://localhost:5002/api/auth/google';
   };
 
   return (

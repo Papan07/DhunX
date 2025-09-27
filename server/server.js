@@ -1,9 +1,10 @@
+const path = require('path');
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const session = require('express-session');
 const MongoStore = require('connect-mongo');
-require('dotenv').config();
+require('dotenv').config({ path: path.resolve(__dirname, '.env') });
 
 // Import passport configuration
 const passport = require('./config/passport');
@@ -31,10 +32,12 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 // CORS configuration
-app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+const corsOptions = {
+  origin: process.env.FRONTEND_URL || 'http://localhost:5176',
   credentials: true
-}));
+};
+console.log('CORS configured for origin:', corsOptions.origin);
+app.use(cors(corsOptions));
 
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));

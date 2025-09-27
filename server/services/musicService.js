@@ -4,135 +4,48 @@ class MusicService {
   constructor() {
     this.youtubeApiKey = process.env.YOUTUBE_API_KEY;
     this.youtubeBaseUrl = 'https://www.googleapis.com/youtube/v3';
-  }
-
-  // Search for music on YouTube
-  async searchMusic(query, maxResults = 20) {
-    try {
-      // Fallback to mock data if API key is restricted or missing
-      if (!this.youtubeApiKey || process.env.USE_MOCK_DATA === 'true') {
-        console.log('Using mock search data for query:', query);
-        return this.getMockSearchData(query, maxResults);
-      }
-
-      const response = await axios.get(`${this.youtubeBaseUrl}/search`, {
-        params: {
-          part: 'snippet',
-          q: query + ' music',
-          type: 'video',
-          videoCategoryId: '10', // Music category
-          maxResults: maxResults,
-          key: this.youtubeApiKey,
-          order: 'relevance'
-        },
-        headers: {
-          'Referer': process.env.FRONTEND_URL || 'http://localhost:5175'
-        }
-      });
-
-      return response.data.items.map(item => ({
-        id: item.id.videoId,
-        title: item.snippet.title,
-        artist: item.snippet.channelTitle,
-        thumbnail: item.snippet.thumbnails.medium.url,
-        description: item.snippet.description,
-        publishedAt: item.snippet.publishedAt,
-        duration: null // Will be fetched separately if needed
-      }));
-    } catch (error) {
-      console.error('YouTube search error:', error.response?.data || error.message);
-      console.log('Falling back to mock search data for query:', query);
-      return this.getMockSearchData(query, maxResults);
+    
+    if (!this.youtubeApiKey || this.youtubeApiKey === 'YOUR_VALID_YOUTUBE_API_KEY_HERE') {
+      console.error('YouTube API key is missing or invalid. Please set YOUTUBE_API_KEY in .env file');
     }
   }
 
-  // Mock search data for development/fallback
-  getMockSearchData(query, maxResults = 20) {
-    const mockSearchResults = [
-      {
-        id: 'dQw4w9WgXcQ',
-        title: 'Rick Astley - Never Gonna Give You Up (Official Video)',
-        artist: 'Rick Astley',
-        thumbnail: 'https://i.ytimg.com/vi/dQw4w9WgXcQ/mqdefault.jpg',
-        description: 'The official video for "Never Gonna Give You Up" by Rick Astley',
-        publishedAt: '2009-10-25T06:57:33Z',
-        duration: null
-      },
-      {
-        id: '9bZkp7q19f0',
-        title: 'PSY - GANGNAM STYLE(강남스타일) M/V',
-        artist: 'officialpsy',
-        thumbnail: 'https://i.ytimg.com/vi/9bZkp7q19f0/mqdefault.jpg',
-        description: 'PSY - GANGNAM STYLE(강남스타일) M/V',
-        publishedAt: '2012-07-15T08:34:21Z',
-        duration: null
-      },
-      {
-        id: 'kJQP7kiw5Fk',
-        title: 'Luis Fonsi - Despacito ft. Daddy Yankee',
-        artist: 'LuisFonsiVEVO',
-        thumbnail: 'https://i.ytimg.com/vi/kJQP7kiw5Fk/mqdefault.jpg',
-        description: 'Luis Fonsi - Despacito ft. Daddy Yankee',
-        publishedAt: '2017-01-12T19:06:32Z',
-        duration: null
-      },
-      {
-        id: 'fJ9rUzIMcZQ',
-        title: 'Queen – Bohemian Rhapsody (Official Video Remastered)',
-        artist: 'Queen Official',
-        thumbnail: 'https://i.ytimg.com/vi/fJ9rUzIMcZQ/mqdefault.jpg',
-        description: 'Bohemian Rhapsody by Queen',
-        publishedAt: '2008-08-01T15:53:05Z',
-        duration: null
-      },
-      {
-        id: 'YQHsXMglC9A',
-        title: 'Adele - Hello (Official Music Video)',
-        artist: 'Adele',
-        thumbnail: 'https://i.ytimg.com/vi/YQHsXMglC9A/mqdefault.jpg',
-        description: 'Adele - Hello (Official Music Video)',
-        publishedAt: '2015-10-22T15:00:07Z',
-        duration: null
-      },
-      {
-        id: 'JGwWNGJdvx8',
-        title: 'Ed Sheeran - Shape of You (Official Video)',
-        artist: 'Ed Sheeran',
-        thumbnail: 'https://i.ytimg.com/vi/JGwWNGJdvx8/mqdefault.jpg',
-        description: 'Ed Sheeran - Shape of You (Official Video)',
-        publishedAt: '2017-01-30T10:00:07Z',
-        duration: null
-      },
-      {
-        id: 'RgKAFK5djSk',
-        title: 'Wiz Khalifa - See You Again ft. Charlie Puth [Official Video]',
-        artist: 'Wiz Khalifa',
-        thumbnail: 'https://i.ytimg.com/vi/RgKAFK5djSk/mqdefault.jpg',
-        description: 'Wiz Khalifa - See You Again ft. Charlie Puth',
-        publishedAt: '2015-04-06T20:07:40Z',
-        duration: null
-      },
-      {
-        id: 'CevxZvSJLk8',
-        title: 'Katy Perry - Roar (Official)',
-        artist: 'Katy Perry',
-        thumbnail: 'https://i.ytimg.com/vi/CevxZvSJLk8/mqdefault.jpg',
-        description: 'Katy Perry - Roar (Official)',
-        publishedAt: '2013-09-05T15:00:07Z',
-        duration: null
+  // Search for music on YouTube - ONLY REAL API
+  async searchMusic(query, maxResults = 20) {
+    console.log('=== YOUTUBE API SEARCH ===');
+    console.log('Query:', query);
+    console.log('Max Results:', maxResults);
+    
+    if (!this.youtubeApiKey) {
+      throw new Error('YouTube API key not found');
+    }
+
+    const response = await axios.get(`${this.youtubeBaseUrl}/search`, {
+      params: {
+        part: 'snippet',
+        q: query,
+        type: 'video',
+        maxResults: maxResults,
+        key: this.youtubeApiKey
       }
-    ];
+    });
 
-    // Filter results based on query (simple contains check)
-    const filtered = mockSearchResults.filter(item =>
-      item.title.toLowerCase().includes(query.toLowerCase()) ||
-      item.artist.toLowerCase().includes(query.toLowerCase())
-    );
+    console.log('YouTube API Response:', response.status);
+    console.log('Results Count:', response.data.items?.length || 0);
+    
+    if (response.data.items && response.data.items.length > 0) {
+      console.log('First result:', response.data.items[0].snippet.title);
+    }
 
-    // If no matches, return all results (simulating broad search)
-    const results = filtered.length > 0 ? filtered : mockSearchResults;
-
-    return results.slice(0, Math.min(maxResults, results.length));
+    return response.data.items.map(item => ({
+      id: item.id.videoId,
+      title: item.snippet.title,
+      artist: item.snippet.channelTitle,
+      thumbnail: item.snippet.thumbnails.medium.url,
+      description: item.snippet.description,
+      publishedAt: item.snippet.publishedAt,
+      duration: null
+    }));
   }
 
   // Get video details including duration
@@ -145,9 +58,6 @@ class MusicService {
           part: 'contentDetails,statistics',
           id: ids,
           key: this.youtubeApiKey
-        },
-        headers: {
-          'Referer': process.env.FRONTEND_URL || 'http://localhost:5175'
         }
       });
 
@@ -159,7 +69,7 @@ class MusicService {
       }));
     } catch (error) {
       console.error('YouTube video details error:', error.response?.data || error.message);
-      throw new Error('Failed to get video details');
+      return [];
     }
   }
 
@@ -198,29 +108,16 @@ class MusicService {
   // Get trending music
   async getTrendingMusic(maxResults = 20) {
     try {
-      console.log('Fetching trending music with API key:', this.youtubeApiKey ? 'Present' : 'Missing');
-
-      // Temporary fallback to mock data due to API key restrictions
-      if (!this.youtubeApiKey || process.env.USE_MOCK_DATA === 'true') {
-        console.log('Using mock trending data');
-        return this.getMockTrendingData(maxResults);
-      }
-
       const response = await axios.get(`${this.youtubeBaseUrl}/videos`, {
         params: {
           part: 'snippet',
           chart: 'mostPopular',
-          videoCategoryId: '10', // Music category
+          videoCategoryId: '10',
           regionCode: 'US',
           maxResults: maxResults,
           key: this.youtubeApiKey
-        },
-        headers: {
-          'Referer': process.env.FRONTEND_URL || 'http://localhost:5175'
         }
       });
-
-      console.log('YouTube API response received, items count:', response.data.items?.length || 0);
 
       return response.data.items.map(item => ({
         id: item.id,
@@ -231,113 +128,48 @@ class MusicService {
         publishedAt: item.snippet.publishedAt
       }));
     } catch (error) {
-      console.error('YouTube trending error details:', {
-        message: error.message,
-        status: error.response?.status,
-        statusText: error.response?.statusText,
-        data: error.response?.data,
-        url: error.config?.url,
-        params: error.config?.params
-      });
-
-      // Fallback to mock data if API fails
-      console.log('Falling back to mock trending data due to API error');
-      return this.getMockTrendingData(maxResults);
+      console.error('YouTube trending error:', error.response?.data || error.message);
+      
+      // If quota exceeded, return mock data
+      if (error.response?.status === 403) {
+        console.log('YouTube API quota exceeded, returning mock trending data');
+        return this.getMockTrendingData(maxResults);
+      }
+      
+      throw error;
     }
   }
 
-  // Mock trending data for development/fallback
+  // Mock trending data for when API quota is exceeded
   getMockTrendingData(maxResults = 20) {
-    const mockData = [
-      {
-        id: 'dQw4w9WgXcQ',
-        title: 'Rick Astley - Never Gonna Give You Up (Official Video)',
-        artist: 'Rick Astley',
-        thumbnail: 'https://i.ytimg.com/vi/dQw4w9WgXcQ/mqdefault.jpg',
-        description: 'The official video for "Never Gonna Give You Up" by Rick Astley',
-        publishedAt: '2009-10-25T06:57:33Z'
-      },
-      {
-        id: '9bZkp7q19f0',
-        title: 'PSY - GANGNAM STYLE(강남스타일) M/V',
-        artist: 'officialpsy',
-        thumbnail: 'https://i.ytimg.com/vi/9bZkp7q19f0/mqdefault.jpg',
-        description: 'PSY - GANGNAM STYLE(강남스타일) M/V',
-        publishedAt: '2012-07-15T08:34:21Z'
-      },
-      {
-        id: 'kJQP7kiw5Fk',
-        title: 'Luis Fonsi - Despacito ft. Daddy Yankee',
-        artist: 'LuisFonsiVEVO',
-        thumbnail: 'https://i.ytimg.com/vi/kJQP7kiw5Fk/mqdefault.jpg',
-        description: 'Luis Fonsi - Despacito ft. Daddy Yankee',
-        publishedAt: '2017-01-12T19:06:32Z'
-      },
-      {
-        id: 'fJ9rUzIMcZQ',
-        title: 'Queen – Bohemian Rhapsody (Official Video Remastered)',
-        artist: 'Queen Official',
-        thumbnail: 'https://i.ytimg.com/vi/fJ9rUzIMcZQ/mqdefault.jpg',
-        description: 'Bohemian Rhapsody by Queen',
-        publishedAt: '2008-08-01T15:53:05Z'
-      },
-      {
-        id: 'YQHsXMglC9A',
-        title: 'Adele - Hello (Official Music Video)',
-        artist: 'Adele',
-        thumbnail: 'https://i.ytimg.com/vi/YQHsXMglC9A/mqdefault.jpg',
-        description: 'Adele - Hello (Official Music Video)',
-        publishedAt: '2015-10-22T15:00:07Z'
-      },
-      {
-        id: 'JGwWNGJdvx8',
-        title: 'Ed Sheeran - Shape of You (Official Video)',
-        artist: 'Ed Sheeran',
-        thumbnail: 'https://i.ytimg.com/vi/JGwWNGJdvx8/mqdefault.jpg',
-        description: 'Ed Sheeran - Shape of You (Official Video)',
-        publishedAt: '2017-01-30T10:00:07Z'
-      },
-      {
-        id: 'RgKAFK5djSk',
-        title: 'Wiz Khalifa - See You Again ft. Charlie Puth [Official Video]',
-        artist: 'Wiz Khalifa',
-        thumbnail: 'https://i.ytimg.com/vi/RgKAFK5djSk/mqdefault.jpg',
-        description: 'Wiz Khalifa - See You Again ft. Charlie Puth',
-        publishedAt: '2015-04-06T20:07:40Z'
-      },
-      {
-        id: 'CevxZvSJLk8',
-        title: 'Katy Perry - Roar (Official)',
-        artist: 'Katy Perry',
-        thumbnail: 'https://i.ytimg.com/vi/CevxZvSJLk8/mqdefault.jpg',
-        description: 'Katy Perry - Roar (Official)',
-        publishedAt: '2013-09-05T15:00:07Z'
-      },
-      {
-        id: 'hT_nvWreIhg',
-        title: 'OneRepublic - Counting Stars (Official Music Video)',
-        artist: 'OneRepublic',
-        thumbnail: 'https://i.ytimg.com/vi/hT_nvWreIhg/mqdefault.jpg',
-        description: 'OneRepublic - Counting Stars',
-        publishedAt: '2013-05-31T16:00:07Z'
-      },
-      {
-        id: 'pRpeEdMmmQ0',
-        title: 'Shakira - Waka Waka (This Time for Africa)',
-        artist: 'Shakira',
-        thumbnail: 'https://i.ytimg.com/vi/pRpeEdMmmQ0/mqdefault.jpg',
-        description: 'Shakira - Waka Waka (This Time for Africa)',
-        publishedAt: '2010-06-04T22:07:31Z'
-      }
+    const mockSongs = [
+      { title: 'Blinding Lights', artist: 'The Weeknd', id: 'mock1' },
+      { title: 'Shape of You', artist: 'Ed Sheeran', id: 'mock2' },
+      { title: 'Bad Habits', artist: 'Ed Sheeran', id: 'mock3' },
+      { title: 'Stay', artist: 'The Kid LAROI & Justin Bieber', id: 'mock4' },
+      { title: 'Good 4 U', artist: 'Olivia Rodrigo', id: 'mock5' },
+      { title: 'Levitating', artist: 'Dua Lipa', id: 'mock6' },
+      { title: 'Watermelon Sugar', artist: 'Harry Styles', id: 'mock7' },
+      { title: 'Peaches', artist: 'Justin Bieber ft. Daniel Caesar & Giveon', id: 'mock8' },
+      { title: 'Deja Vu', artist: 'Olivia Rodrigo', id: 'mock9' },
+      { title: 'Montero', artist: 'Lil Nas X', id: 'mock10' },
+      { title: 'Industry Baby', artist: 'Lil Nas X & Jack Harlow', id: 'mock11' },
+      { title: 'Heat Waves', artist: 'Glass Animals', id: 'mock12' }
     ];
 
-    return mockData.slice(0, Math.min(maxResults, mockData.length));
+    return mockSongs.slice(0, maxResults).map(song => ({
+      id: song.id,
+      title: song.title,
+      artist: song.artist,
+      thumbnail: 'https://i.ytimg.com/vi/dQw4w9WgXcQ/mqdefault.jpg',
+      description: 'Mock trending song - API quota exceeded',
+      publishedAt: new Date().toISOString()
+    }));
   }
 
   // Get music recommendations based on a video
   async getRecommendations(videoId, maxResults = 10) {
     try {
-      // Get video details first
       const videoResponse = await axios.get(`${this.youtubeBaseUrl}/videos`, {
         params: {
           part: 'snippet',
@@ -353,7 +185,6 @@ class MusicService {
       const video = videoResponse.data.items[0];
       const searchQuery = `${video.snippet.title} ${video.snippet.channelTitle}`;
       
-      // Search for similar content
       return this.searchMusic(searchQuery, maxResults);
     } catch (error) {
       console.error('YouTube recommendations error:', error.response?.data || error.message);
