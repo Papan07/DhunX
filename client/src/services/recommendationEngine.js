@@ -3,7 +3,7 @@ import userHistoryService from './userHistoryService';
 
 class RecommendationEngine {
   constructor() {
-    this.apiBaseUrl = 'http://localhost:5002/api/music';
+    this.apiBaseUrl = `${import.meta.env.VITE_API_URL}/api/music`;
     this.weights = {
       recentPlays: 0.3,
       likedSongs: 0.4,

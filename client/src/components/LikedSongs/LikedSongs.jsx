@@ -24,7 +24,7 @@ const LikedSongs = () => {
     
     try {
       const token = localStorage.getItem('accessToken');
-      const response = await axios.get('http://localhost:5002/api/library/liked-songs', {
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/library/liked-songs`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -46,7 +46,7 @@ const LikedSongs = () => {
 
     try {
       const token = localStorage.getItem('accessToken');
-      await axios.delete(`http://localhost:5002/api/library/liked-songs/${videoId}`, {
+      await axios.delete(`${import.meta.env.VITE_API_URL}/api/library/liked-songs/${videoId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 

@@ -44,7 +44,7 @@ class UserHistoryService {
       const token = localStorage.getItem('accessToken');
       if (!token) return;
 
-      await axios.post('http://localhost:5002/api/user/history/sync', {
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/user/history/sync`, {
         history: this.sessionData
       }, {
         headers: { Authorization: `Bearer ${token}` }

@@ -44,7 +44,7 @@ const Search = () => {
     setSearchResults([]); // Clear previous results
     
     try {
-      const response = await axios.get(`http://localhost:5002/api/music/search`, {
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/music/search`, {
         params: { q: searchQuery, limit: 20 }
       });
 

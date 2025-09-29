@@ -34,7 +34,7 @@ const Playlists = () => {
     
     try {
       const token = localStorage.getItem('accessToken');
-      const response = await axios.get('http://localhost:5002/api/library/playlists', {
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/library/playlists`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -59,7 +59,7 @@ const Playlists = () => {
 
     try {
       const token = localStorage.getItem('accessToken');
-      const response = await axios.post('http://localhost:5002/api/library/playlists', {
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/library/playlists`, {
         name: newPlaylist.name.trim(),
         description: newPlaylist.description.trim(),
         isPublic: newPlaylist.isPublic
@@ -86,7 +86,7 @@ const Playlists = () => {
 
     try {
       const token = localStorage.getItem('accessToken');
-      await axios.delete(`http://localhost:5002/api/library/playlists/${playlistId}`, {
+      await axios.delete(`${import.meta.env.VITE_API_URL}/api/library/playlists/${playlistId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 

@@ -29,13 +29,13 @@ const Library = () => {
       const headers = { Authorization: `Bearer ${token}` };
 
       // Fetch user's playlists
-      const playlistsResponse = await axios.get('http://localhost:5002/api/library/playlists', { headers });
+      const playlistsResponse = await axios.get(`${import.meta.env.VITE_API_URL}/api/library/playlists`, { headers });
       if (playlistsResponse.data.success) {
         setPlaylists(playlistsResponse.data.data.playlists);
       }
 
       // Fetch liked songs
-      const likedSongsResponse = await axios.get('http://localhost:5002/api/library/liked-songs', { headers });
+      const likedSongsResponse = await axios.get(`${import.meta.env.VITE_API_URL}/api/library/liked-songs`, { headers });
       if (likedSongsResponse.data.success) {
         setLikedSongs(likedSongsResponse.data.data.songs);
       }

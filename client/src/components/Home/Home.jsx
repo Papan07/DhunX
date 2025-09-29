@@ -23,7 +23,7 @@ const Home = () => {
     setRecommendationsLoading(true);
     try {
       console.log('Fetching recommendations...');
-      const response = await axios.get('http://localhost:5002/api/music/recommendations');
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/music/recommendations`);
       
       if (response.data.success && response.data.data.results) {
         console.log('Got recommendations:', response.data.data.results.length);
@@ -55,7 +55,7 @@ const Home = () => {
       const headers = { Authorization: `Bearer ${token}` };
 
       // Fetch trending music
-      const trendingResponse = await axios.get('http://localhost:5002/api/music/trending', {
+      const trendingResponse = await axios.get(`${import.meta.env.VITE_API_URL}/api/music/trending`, {
         params: { limit: 12 }
       });
       
@@ -144,7 +144,7 @@ const Home = () => {
   const handleLikeSong = async (song) => {
     try {
       const token = localStorage.getItem('accessToken');
-      await axios.post('http://localhost:5002/api/library/liked-songs', {
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/library/liked-songs`, {
         videoId: song.id,
         title: song.title,
         artist: song.artist,
